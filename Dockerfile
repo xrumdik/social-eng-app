@@ -5,7 +5,7 @@ COPY . .
 RUN hugo --minify
 
 # --- Стадия 2: раздача через nginx ---
-FROM nginx:1.30-alpine
+FROM nginxinc/nginx-unprivileged:1.30-alpine
 COPY --from=build /src/public /usr/share/nginx/html
 COPY docker-entrypoint.d/40-inject-pod-info.sh /docker-entrypoint.d/40-inject-pod-info.sh
 RUN chmod +x /docker-entrypoint.d/40-inject-pod-info.sh
@@ -20,6 +20,6 @@ RUN chmod +x /docker-entrypoint.d/40-inject-pod-info.sh
 RUN chown -R nginx:nginx /usr/share/nginx/html /var/cache/nginx /var/run
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:80/ || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://127.0.0.1:8080/ || exit 1
 
-EXPOSE 80
+EXPOSE 8080
