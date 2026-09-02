@@ -1,0 +1,105 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_run:
+    workflows: ["Build and Push"]
+    types: [completed]
+
+permissions:
+  contents: read
+  security-events: write
+  packages: read
+
+jobs:
+  code-scan:
+    name: Код репозитория (CVE в зависимостях + секреты)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: sarif
+          output: trivy-fs-results.sarif
+          severity: CRITICAL,HIGH,MEDIUM
+
+      - name: Upload results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-fs-results.sarif
+          category: trivy-filesystem
+
+  dockerfile-scan:
+    name: Dockerfile (мисконфигурации образа)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Trivy Dockerfile config scan
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          scan-type: config
+          scan-ref: .
+          format: sarif
+          output: trivy-dockerfile-results.sarif
+          severity: CRITICAL,HIGH,MEDIUM
+
+      - name: Upload results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-dockerfile-results.sarif
+          category: trivy-dockerfile
+
+  k8s-manifests-scan:
+    name: K8s-манифесты (мисконфигурации кластера)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout GitOps repo
+        uses: actions/checkout@v4
+        with:
+          repository: xrumdik/k8s-gitops
+          path: gitops
+
+      - name: Trivy k8s manifests config scan
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          scan-type: config
+          scan-ref: gitops/apps
+          format: sarif
+          output: trivy-k8s-results.sarif
+          severity: CRITICAL,HIGH,MEDIUM
+
+      - name: Upload results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-k8s-results.sarif
+          category: trivy-k8s-manifests
+
+  image-scan:
+    name: Собранный образ (CVE)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+    steps:
+      - name: Trivy image scan
+        uses: aquasecurity/trivy-action@0.36.0
+        with:
+          image-ref: ghcr.io/${{ github.repository }}:latest
+          format: sarif
+          output: trivy-image-results.sarif
+          severity: CRITICAL,HIGH,MEDIUM
+
+      - name: Upload results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: trivy-image-results.sarif
+          category: trivy-image
