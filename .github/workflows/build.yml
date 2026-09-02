@@ -37,11 +37,17 @@ jobs:
           token: ${{ secrets.GITOPS_REPO_TOKEN }}
           path: gitops
 
+      - name: Setup Kustomize
+        uses: imranismail/setup-kustomize@v2
+
       - name: Update image tag
         run: |
-          cd gitops
-          sed -i "s#image: ghcr.io/.*/social-eng-app:.*#image: ghcr.io/${{ github.repository }}:${{ github.sha }}#" apps/social-eng-app/deployment.yaml
+          cd gitops/apps/social-eng-app
+          kustomize edit set image social-eng-app=ghcr.io/${{ github.repository }}:${{ github.sha }}
+          cd ../../
           git config user.name "github-actions"
           git config user.email "actions@github.com"
-          git commit -am "Update social-eng-app image to ${{ github.sha }}" || echo "No changes"
+          git add apps/social-eng-app/kustomization.yaml
+          git commit -m "Update social-eng-app image to ${{ github.sha }}" || echo "No changes"
+          git pull --rebase origin main
           git push
