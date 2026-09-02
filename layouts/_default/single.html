@@ -1,0 +1,9 @@
+{{ define "main" }}
+<article>
+  <a class="back-link" href="{{ "/posts/" | relURL }}">&larr; Все статьи</a>
+  <h1>{{ .Title }}</h1>
+  <div class="content">
+    {{ .Content }}
+  </div>
+</article>
+{{ end }}

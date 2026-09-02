@@ -1,0 +1,16 @@
+baseURL = "http://social-eng.cloud.corp/"
+languageCode = "ru-RU"
+title = "Социальная инженерия: осведомлённость и защита"
+
+[params]
+  description = "Учебные материалы по распознаванию и противодействию атакам социальной инженерии"
+
+[menu]
+  [[menu.main]]
+    name = "Главная"
+    url = "/"
+    weight = 1
+  [[menu.main]]
+    name = "Статьи"
+    url = "/posts/"
+    weight = 2
