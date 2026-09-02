@@ -32,8 +32,8 @@ jobs:
 
       - name: Checkout GitOps repo
         uses: actions/checkout@v4
-        with: xrumdik/k8s-gitops
-          repository: 
+        with: 
+          repository: xrumdik/k8s-gitops
           token: ${{ secrets.GITOPS_REPO_TOKEN }}
           path: gitops
 
