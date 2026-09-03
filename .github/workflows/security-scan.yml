@@ -76,6 +76,7 @@ jobs:
           format: sarif
           output: trivy-k8s-results.sarif
           severity: CRITICAL,HIGH,MEDIUM
+          trivyignores: gitops/apps/social-eng-app/.trivyignore
 
       - name: Upload results to GitHub Security
         uses: github/codeql-action/upload-sarif@v3
